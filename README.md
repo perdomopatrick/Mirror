@@ -2,7 +2,7 @@
 
 Canvas mirroring divides your digital canvas into two sides. When you draw, it acts exactly like a mirror placed in the middle of your screen. Anything you draw on the left side instantly and automatically duplicates onto the opposite side in reverse, giving you perfect symmetry.
 
-You can cross the side.
+You can cross sides. Green is the real mouse. Cyan is the mirrored one.
 
 ## Demo
 <div align="center">
