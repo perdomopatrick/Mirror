@@ -5,7 +5,9 @@ Canvas mirroring divides your digital canvas into two sides. When you draw, it a
 You can cross the side.
 
 ## Demo
-![demo](./sampleVideo.gif)
+<div align="center">
+  <img src="./sampleVideo.gif" width="250" />
+</div>
 
 ## Controls
 - Draws         (left click and drag)
