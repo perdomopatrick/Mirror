@@ -1,18 +1,15 @@
+const settings = {
+    willReadFrequently: true
+};
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d", settings);
 
-const canvasCursor = document.getElementById('cursor');
+const canvasCursor = document.getElementById('cursors');
 const ctxC = canvasCursor.getContext('2d');
-ctxC.save();
-
-const canvasMirror = document.getElementById('mirror');
-const ctxM = canvasMirror.getContext('2d');
-
-
 
 const uiOverlay = document.getElementById('uiOverlay');
-
 const resumeBtn = document.getElementById('resumeBtn');
+
 resumeBtn.addEventListener('click', () => {
     uiOverlay.style.display = 'none';
 });
@@ -23,25 +20,14 @@ uiOverlay.addEventListener('click', () => {
 
 // handle canvas resizing
 function resize() {
-    canvas.width = window.innerWidth / 2;
+    canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    canvasMirror.width = window.innerWidth / 2;
-    canvasMirror.height = window.innerHeight;
     canvasCursor.width = window.innerWidth;
     canvasCursor.height = window.innerHeight;
-    ctxM.translate(canvas.width, 0);
-    ctxM.scale(-1, 1);
-    ctxM.save();
 }
 window.addEventListener('resize', resize);
-resize();
-
 
 const mouse = {
-    x: innerWidth / 2,
-    y: innerHeight / 2,
-};
-const mouseReal = {
     x: innerWidth / 2,
     y: innerHeight / 2,
 };
@@ -51,9 +37,12 @@ let isDrawing = false
 let lastX = 0;
 let lastY = 0;
 
+const history = [];
+
+
 function draw(e) {
-    mouseReal.x = e.clientX;
-    mouseReal.y = e.clientY;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
     if (!isDrawing) return;
 
     // configure pencil style
@@ -66,24 +55,14 @@ function draw(e) {
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(mouse.x, mouse.y);
     ctx.stroke();
-
     [lastX, lastY] = [mouse.x, mouse.y];
 }
-
-// mouse and save coords
-canvas.addEventListener('pointermove', (e) => {
-    mouse.x = e.offsetX;
-    mouse.y = e.offsetY;
-});
-
-canvasMirror.addEventListener('pointermove', (e) => {
-    mouse.x = canvas.width - e.offsetX;
-    mouse.y = e.offsetY;
-});
 
 window.addEventListener('pointermove', draw);
 
 window.addEventListener('pointerdown', (e) => {
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    history.push(img);
     [lastX, lastY] = [mouse.x, mouse.y];
     isDrawing = true;
 });
@@ -91,26 +70,32 @@ window.addEventListener('pointerup', () => {
     isDrawing = false;
 });
 window.addEventListener('pointerpress', () => {
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    history.push(img);
     isDrawing = false;
 });
 
 window.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'r') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctxM.clearRect(0, 0, canvasMirror.width, canvasMirror.height);
+    } else if (e.ctrlKey && e.key === 'z') {
+        // ctx.clearRect(0, 0, canvas.width, canvas.height);
+        console.log(history)
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (history.length > 0) {
+            ctx.putImageData(history.pop(), 0, 0);
+        }
+
     }
 });
 
 
-
-function drawCursor(ctx, colour, colour2, is) {
-
-    if (is) {
-        x = 2 * canvas.width - mouseReal.x;
-        y = mouseReal.y;
-    } else {
-        x = mouseReal.x;
-        y = mouseReal.y;
+function drawCursor(ctx, colour, colour2, isRealCursor) {
+    let x = mouse.x;
+    let y = mouse.y;
+    if (!isRealCursor) {
+        x = 2 * canvas.width / 2 - mouse.x;
+        y = mouse.y;
     }
     // inner dot
     ctx.beginPath();
@@ -127,15 +112,18 @@ function drawCursor(ctx, colour, colour2, is) {
 }
 
 function drawMirror() {
-    ctxM.clearRect(0, 0, canvasMirror.width, canvasMirror.height);
-    ctxM.drawImage(canvas, 0, 0);
+    ctx.save();
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(canvas, 0, 0);
+    ctx.restore();
 }
 
 function drawCursors() {
     ctxC.clearRect(0, 0, canvasCursor.width, canvasCursor.height);
 
-    drawCursor(ctxC, '#00f200ff', '#00fa0075', false);
-    drawCursor(ctxC, '#00eaffff', '#00c0ff75', true);
+    drawCursor(ctxC, '#00f200ff', '#00fa0075', true);
+    drawCursor(ctxC, '#00eaffff', '#00c0ff75', false);
 }
 
 // animation loop 
@@ -147,10 +135,6 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-
 // start canvas
-function init() {
-    animate();
-}
-
-init();
+resize();
+animate();
