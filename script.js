@@ -79,8 +79,6 @@ window.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'r') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     } else if (e.ctrlKey && e.key === 'z') {
-        // ctx.clearRect(0, 0, canvas.width, canvas.height);
-        console.log(history)
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (history.length > 0) {
             ctx.putImageData(history.pop(), 0, 0);
